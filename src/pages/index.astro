@@ -1,0 +1,69 @@
+---
+import { getEmDashCollection, getEmDashEntry, getSiteSettings } from "emdash";
+import { Blocks, defineBlockComponents } from "emdash/ui";
+import type { HomepageSectionsBlock } from "../../emdash-env";
+import Base from "../layouts/Base.astro";
+import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import Hero from "../components/home/Hero.astro";
+import Services from "../components/home/Services.astro";
+import RecentProduct from "../components/home/RecentProduct.astro";
+import WhyChooseUs from "../components/home/WhyChooseUs.astro";
+import GetQuote from "../components/home/GetQuote.astro";
+import Notice from "../components/blocks/Notice.astro";
+import ContactCards from "../components/blocks/ContactCards.astro";
+import MapForm from "../components/blocks/MapForm.astro";
+
+const { entries: products, cacheHint } = await getEmDashCollection("product", {
+	orderBy: { published_at: "desc" },
+	limit: 10,
+});
+const { entry: homepage, cacheHint: homeCacheHint } = await getEmDashEntry(
+	"homepage",
+	"home",
+);
+const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
+	await getSiteSettings(),
+);
+if (Astro.cache?.enabled) {
+	Astro.cache.set(cacheHint);
+	Astro.cache.set(homeCacheHint);
+}
+
+const blocks = homepage?.data.sections ?? [];
+const whyAt = blocks.findIndex((block) => block._type === "why_choose_us");
+const leadingBlocks = whyAt === -1 ? blocks : blocks.slice(0, whyAt);
+const followingBlocks = whyAt === -1 ? [] : blocks.slice(whyAt);
+const homeBlocks = defineBlockComponents<HomepageSectionsBlock>({
+	hero: Hero,
+	services: Services,
+	why_choose_us: WhyChooseUs,
+	get_quote: GetQuote,
+	notice: Notice,
+	contact_cards: ContactCards,
+	map_form: MapForm,
+});
+---
+
+<Base title={siteTitle} description={siteTagline}>
+	{
+		homepage ? (
+			<Blocks value={leadingBlocks} components={homeBlocks} />
+		) : (
+			<>
+				<Hero />
+				<Services />
+			</>
+		)
+	}
+	<RecentProduct products={products} />
+	{
+		homepage ? (
+			<Blocks value={followingBlocks} components={homeBlocks} />
+		) : (
+			<>
+				<WhyChooseUs />
+				<GetQuote />
+			</>
+		)
+	}
+</Base>

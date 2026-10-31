@@ -1,0 +1,528 @@
+---
+import {
+	decodeSlug,
+	getEmDashCollection,
+	getTaxonomyTermsWithCacheHint,
+} from "emdash";
+import { Image } from "emdash/ui";
+import type { Product } from "../../../emdash-env";
+import Base from "../../layouts/Base.astro";
+
+interface CategoryTerm {
+	id: string;
+	slug: string;
+	label: string;
+	parentId?: string;
+	description?: string;
+	count?: number;
+	children?: CategoryTerm[];
+}
+
+const categoryImages: Record<string, string> = {
+	"dried-plants": "/images/categories/dried-plants.jpg",
+	"dried-flowers": "/images/categories/dried-flowers.jpg",
+	"dried-branches": "/images/categories/dried-branches.jpg",
+	pampas: "/images/categories/pampas.jpg",
+	bouquets: "/images/categories/bouquets.jpg",
+	"preserved-flower": "/images/categories/preserved-flower.jpg",
+};
+
+const PER_PAGE = 15;
+
+const path = Astro.params.slug?.split("/").filter(Boolean) ?? [];
+const slug = path.length === 1 || path.length === 3 ? decodeSlug(path[0]) : undefined;
+const pageSegment = path.length === 3 && path[1] === "page" ? path[2] : undefined;
+const page =
+	path.length === 1 ? 1 : pageSegment && /^[1-9]\d*$/.test(pageSegment) ? Number(pageSegment) : 0;
+
+if (!slug || page < 1 || (path.length === 3 && pageSegment !== String(page))) {
+	return Astro.rewrite("/404");
+}
+
+if (page === 1 && path.length === 3) {
+	return Astro.redirect(`/product-cat/${slug}`);
+}
+
+const queryPage = Astro.url.searchParams.get("page");
+if (queryPage) {
+	if (!/^[1-9]\d*$/.test(queryPage)) return Astro.rewrite("/404");
+	const target =
+		queryPage === "1" ? `/product-cat/${slug}` : `/product-cat/${slug}/page/${queryPage}`;
+	return Astro.redirect(target);
+}
+
+const termsResult = await getTaxonomyTermsWithCacheHint("product_cat", {
+	includeCounts: true,
+});
+const terms = flattenTerms(termsResult.data as CategoryTerm[]);
+const term = terms.find((item) => item.slug === slug);
+
+if (!term) {
+	return Astro.rewrite("/404");
+}
+
+console.log(term);
+console.log(terms);
+console.log(termsResult.data);
+console.log(termsResult.cacheHint);
+console.log(termsResult);
+
+
+const total = assignedCount(term);
+const pageCount = Math.ceil(total / PER_PAGE);
+if (pageCount > 0 && page > pageCount) {
+	return Astro.rewrite("/404");
+}
+
+const { entries: products, cacheHint } = await getEmDashCollection("product", {
+	where: { product_cat: collectSlugs(term) },
+	orderBy: { published_at: "desc" },
+	limit: PER_PAGE,
+	offset: (page - 1) * PER_PAGE,
+});
+if (Astro.cache?.enabled) {
+	Astro.cache.set(termsResult.cacheHint);
+	Astro.cache.set(cacheHint);
+}
+
+const trail = [...ancestors(term, terms), term];
+const children = term.children ?? [];
+const banner = categoryImages[term.slug];
+const description = term.description?.trim();
+
+function flattenTerms(items: CategoryTerm[]): CategoryTerm[] {
+	return items.flatMap((item) => [item, ...flattenTerms(item.children ?? [])]);
+}
+
+function collectSlugs(item: CategoryTerm): string[] {
+	return [item.slug, ...(item.children ?? []).flatMap(collectSlugs)];
+}
+
+function assignedCount(item: CategoryTerm): number {
+	return (
+		(item.count ?? 0) +
+		(item.children ?? []).reduce((sum, child) => sum + assignedCount(child), 0)
+	);
+}
+
+function pageHref(categorySlug: string, pageNumber: number) {
+	return pageNumber <= 1
+		? `/product-cat/${categorySlug}`
+		: `/product-cat/${categorySlug}/page/${pageNumber}`;
+}
+
+function ancestors(item: CategoryTerm, all: CategoryTerm[]): CategoryTerm[] {
+	const chain: CategoryTerm[] = [];
+	let parentId = item.parentId;
+	while (parentId) {
+		const parent = all.find((candidate) => candidate.id === parentId);
+		if (!parent) break;
+		chain.unshift(parent);
+		parentId = parent.parentId;
+	}
+	return chain;
+}
+
+function getRef(product: Product) {
+	return product.property
+		?.find((item) => item.name?.trim().toLowerCase() === "ref")
+		?.value?.trim();
+}
+---
+
+<Base title={term.label} description={description || term.label}>
+	<section
+		class="banner"
+		style={banner ? `--banner-image: url("${banner}")` : undefined}
+	>
+		<h1>{term.label}</h1>
+	</section>
+
+	<nav class="crumbs" aria-label="Breadcrumb">
+		<ol>
+			<li><a href="/">Home</a></li>
+			{
+				trail.map((item, index) => (
+					<li>
+						<span aria-hidden="true">/</span>
+						{index === trail.length - 1 ? (
+							<span aria-current="page">{item.label}</span>
+						) : (
+							<a href={`/product-cat/${item.slug}`}>{item.label}</a>
+						)}
+					</li>
+				))
+			}
+		</ol>
+	</nav>
+
+	{
+		(children.length > 0 || description) && (
+			<section class="intro">
+				{children.length > 0 && (
+					<ul class="children">
+						{children.map((child) => {
+							const image = categoryImages[child.slug];
+							return (
+								<li>
+									<a href={`/product-cat/${child.slug}`}>
+										{image && (
+											<img src={image} alt="" width="480" height="320" />
+										)}
+										<span>{child.label}</span>
+									</a>
+								</li>
+							);
+						})}
+					</ul>
+				)}
+				{description && <p class="description">{description}</p>}
+			</section>
+		)
+	}
+
+	{
+		products.length === 0 ? (
+			<p class="empty">No products in this category yet.</p>
+		) : (
+			<ul class="catalog">
+				{products.map((product) => {
+					const href = `/product/${product.id}`;
+					const ref = getRef(product.data);
+					return (
+						<li class="product-card">
+							<a class="product-media" href={href} tabindex="-1" aria-hidden="true">
+								<Image
+									image={product.data.featured_image}
+									alt={product.data.featured_image?.alt || product.data.title}
+									width={480}
+									height={600}
+									class="product-image"
+								/>
+							</a>
+							<div class="product-info">
+								<h2 class="product-title">
+									<a href={href}>{product.data.title}</a>
+								</h2>
+								{ref && <p class="product-ref">Ref: {ref}</p>}
+							</div>
+						</li>
+					);
+				})}
+			</ul>
+		)
+	}
+
+	{
+		pageCount > 1 && (
+			<nav class="pager" aria-label="Pagination">
+				<ol>
+					{page > 1 && (
+						<li>
+							<a href={pageHref(term.slug, page - 1)} aria-label="Previous page">
+								«
+							</a>
+						</li>
+					)}
+					{Array.from({ length: pageCount }, (_, index) => {
+						const pageNumber = index + 1;
+						return (
+							<li>
+								{pageNumber === page ? (
+									<span aria-current="page">{pageNumber}</span>
+								) : (
+									<a href={pageHref(term.slug, pageNumber)}>{pageNumber}</a>
+								)}
+							</li>
+						);
+					})}
+					{page < pageCount && (
+						<li>
+							<a href={pageHref(term.slug, page + 1)} aria-label="Next page">
+								»
+							</a>
+						</li>
+					)}
+				</ol>
+			</nav>
+		)
+	}
+</Base>
+
+<style>
+	.banner {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 240px;
+		padding: 40px 20px;
+		background-color: #b9a090;
+		background-image: var(--banner-image);
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
+
+	.banner h1 {
+		margin: 0;
+		color: #fff;
+		font-size: 48px;
+		font-weight: 700;
+		line-height: 1.4;
+		text-align: center;
+	}
+
+	.crumbs {
+		background: var(--color-brand);
+		color: #fff;
+	}
+
+	.crumbs ol {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px;
+		max-width: var(--content-width);
+		min-height: 36px;
+		margin: 0 auto;
+		padding: 5px 10px;
+		list-style: none;
+		font-size: 15px;
+		line-height: 1.7;
+	}
+
+	.crumbs li {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.crumbs a {
+		color: #fff;
+		text-decoration: none;
+	}
+
+	.crumbs a:hover {
+		text-decoration: underline;
+	}
+
+	.intro {
+		padding: 50px 10px 40px;
+		background: rgba(255, 140, 0, 0.1);
+	}
+
+	.children {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 60px;
+		max-width: 840px;
+		margin: 0 auto 40px;
+		padding: 0;
+		list-style: none;
+	}
+
+	.children:last-child {
+		margin-bottom: 0;
+	}
+
+	.children a {
+		position: relative;
+		display: block;
+		width: 240px;
+		height: 160px;
+		overflow: hidden;
+		border-radius: 4px;
+		background: var(--color-brand);
+		color: #fff;
+		text-decoration: none;
+	}
+
+	.children img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.children span {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		padding: 5px;
+		background: rgba(230, 167, 137, 0.8);
+		font-size: 16px;
+		line-height: 1.4;
+		text-align: center;
+	}
+
+	.description {
+		max-width: var(--content-width);
+		margin: 0 auto;
+		color: #545454;
+		font-size: 18px;
+		line-height: 1.7;
+		text-align: center;
+		white-space: pre-line;
+	}
+
+	.catalog,
+	.empty,
+	.pager {
+		max-width: var(--content-width);
+		margin-inline: auto;
+		padding-inline: 10px;
+	}
+
+	.catalog {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 20px;
+		margin-block: 30px 60px;
+		padding-block: 0;
+		list-style: none;
+	}
+
+	.product-card {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		overflow: hidden;
+		border-radius: 3px;
+		background: var(--color-surface);
+	}
+
+	.product-media {
+		display: block;
+		height: 280px;
+		overflow: hidden;
+	}
+
+	.product-media :global(.product-image) {
+		display: block;
+		width: 100%;
+		max-width: none;
+		height: 100%;
+		object-fit: cover;
+		transition: opacity 0.2s;
+	}
+
+	.product-info {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		padding: 10px;
+	}
+
+	.product-title {
+		margin: 0;
+		overflow: hidden;
+		font-size: 15px;
+		font-weight: 400;
+		line-height: 1;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.product-title a {
+		color: var(--color-muted);
+		text-decoration: none;
+	}
+
+	.product-card:hover .product-title a {
+		color: var(--color-brand);
+	}
+
+	.product-card:hover :global(.product-image) {
+		opacity: 0.85;
+	}
+
+	.product-ref {
+		margin: 0;
+		font-size: 14px;
+		line-height: 1.2;
+	}
+
+	.empty {
+		margin-block: 40px 80px;
+		color: #545454;
+		font-size: 16px;
+		text-align: center;
+	}
+
+	.pager {
+		max-width: var(--content-width);
+		margin: -30px auto 60px;
+		padding-inline: 10px;
+	}
+
+	.pager ol {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 10px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pager a,
+	.pager [aria-current="page"] {
+		display: grid;
+		width: 40px;
+		height: 30px;
+		place-items: center;
+		border: 1px solid #eee;
+		border-radius: 3px;
+		background: #fff;
+		color: #616161;
+		font-size: 15px;
+		line-height: 1;
+		text-decoration: none;
+	}
+
+	.pager [aria-current="page"] {
+		background: var(--color-brand);
+		color: #fff;
+	}
+
+	@media (max-width: 991px) {
+		.catalog {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 10px;
+		}
+
+		.children {
+			gap: 20px;
+		}
+	}
+
+	@media (max-width: 767px) {
+		.banner {
+			min-height: 240px;
+		}
+
+		.banner h1 {
+			font-size: 32px;
+		}
+
+		.catalog {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 478px) {
+		.catalog {
+			gap: 5px;
+		}
+
+		.product-media {
+			height: 250px;
+		}
+
+		.product-info {
+			padding: 6px;
+		}
+	}
+</style>

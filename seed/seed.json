@@ -1,0 +1,658 @@
+{
+	"$schema": "https://emdashcms.com/seed.schema.json",
+	"version": "1",
+	"meta": {
+		"name": "Starter",
+		"description": "A minimal EmDash starter with posts and pages",
+		"author": "EmDash"
+	},
+	"settings": {
+		"title": "My Site",
+		"tagline": "Built with EmDash"
+	},
+	"blockTypes": [
+		{
+			"slug": "hero",
+			"label": "首屏",
+			"description": "首页第一屏：小标题、标题、正文、按钮和背景图。",
+			"category": "首页",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "eyebrow",
+							"label": "小标题",
+							"type": "string"
+						},
+						{
+							"slug": "title",
+							"label": "标题",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "text",
+							"label": "正文",
+							"type": "text"
+						},
+						{
+							"slug": "cta_label",
+							"label": "按钮文字",
+							"type": "string"
+						},
+						{
+							"slug": "cta_href",
+							"label": "按钮链接",
+							"type": "url"
+						},
+						{
+							"slug": "image",
+							"label": "背景图",
+							"type": "image"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "services",
+			"label": "服务",
+			"description": "首页服务卡片：小标题、标题，以及若干张卡片。",
+			"category": "首页",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "eyebrow",
+							"label": "小标题",
+							"type": "string"
+						},
+						{
+							"slug": "title",
+							"label": "标题",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "items",
+							"label": "卡片",
+							"type": "repeater",
+							"validation": {
+								"subFields": [
+									{
+										"slug": "title",
+										"label": "标题",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "text",
+										"label": "说明",
+										"type": "text"
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "why_choose_us",
+			"label": "选择我们",
+			"description": "首页左右两栏：图片、小标题、标题，以及若干条理由。",
+			"category": "首页",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "eyebrow",
+							"label": "小标题",
+							"type": "string"
+						},
+						{
+							"slug": "title",
+							"label": "标题",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "reasons",
+							"label": "理由",
+							"type": "repeater",
+							"validation": {
+								"subFields": [
+									{
+										"slug": "title",
+										"label": "标题",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "text",
+										"label": "说明",
+										"type": "text"
+									}
+								]
+							}
+						},
+						{
+							"slug": "image",
+							"label": "图片",
+							"type": "image"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "get_quote",
+			"label": "获取报价",
+			"description": "首页底部报价条：标题、正文和按钮。",
+			"category": "首页",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "title",
+							"label": "标题",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "text",
+							"label": "正文",
+							"type": "text"
+						},
+						{
+							"slug": "cta_label",
+							"label": "按钮文字",
+							"type": "string"
+						},
+						{
+							"slug": "cta_href",
+							"label": "按钮链接",
+							"type": "url"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "notice",
+			"label": "提示",
+			"description": "一段标题和正文。可以放到首页，也可以放到普通页面。",
+			"category": "通用",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "title",
+							"label": "标题",
+							"type": "string",
+							"required": true
+						},
+						{
+							"slug": "text",
+							"label": "正文",
+							"type": "text"
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "contact_cards",
+			"label": "联系卡片",
+			"description": "图标、标题和文本组成的联系方式。可以放到首页，也可以放到普通页面。",
+			"category": "通用",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "items",
+							"label": "卡片",
+							"type": "repeater",
+							"validation": {
+								"subFields": [
+									{
+										"slug": "icon",
+										"label": "图标",
+										"type": "select",
+										"required": true,
+										"options": ["phone", "mobile", "email", "address", "whatsapp"]
+									},
+									{
+										"slug": "title",
+										"label": "标题",
+										"type": "string",
+										"required": true
+									},
+									{
+										"slug": "text",
+										"label": "文本",
+										"type": "text"
+									},
+									{
+										"slug": "href",
+										"label": "链接",
+										"type": "url"
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "map_form",
+			"label": "地图表单",
+			"description": "左边地图，右边留言表单。可以放到首页，也可以放到普通页面。",
+			"category": "通用",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{
+							"slug": "address",
+							"label": "地图地址",
+							"type": "text"
+						},
+						{
+							"slug": "button_label",
+							"label": "按钮文字",
+							"type": "string"
+						}
+					]
+				}
+			]
+		}
+	],
+	"collections": [
+		{
+			"slug": "posts",
+			"label": "Posts",
+			"labelSingular": "Post",
+			"urlPattern": "/posts/{slug}",
+			"supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "featured_image",
+					"label": "Featured Image",
+					"type": "image"
+				},
+				{
+					"slug": "content",
+					"label": "Content",
+					"type": "portableText",
+					"searchable": true
+				},
+				{
+					"slug": "excerpt",
+					"label": "Excerpt",
+					"type": "text"
+				}
+			]
+		},
+		{
+			"slug": "pages",
+			"label": "Pages",
+			"labelSingular": "Page",
+			"urlPattern": "/{slug}",
+			"supports": ["drafts", "revisions", "preview", "search", "seo"],
+			"fields": [
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "featured_image",
+					"label": "Featured Image",
+					"type": "image"
+				},
+				{
+					"slug": "content",
+					"label": "Content",
+					"type": "portableText",
+					"searchable": true
+				},
+				{
+					"slug": "sections",
+					"label": "区块",
+					"type": "blocks",
+					"validation": {
+						"allowedTypes": ["notice", "contact_cards", "map_form"],
+						"maxItems": 12
+					}
+				}
+			]
+		},
+		{
+			"slug": "homepage",
+			"label": "首页",
+			"labelSingular": "首页",
+			"description": "首页上可编排的区块。这个类型没有自己的网址。",
+			"routable": false,
+			"sortOrder": 0,
+			"supports": ["drafts", "revisions", "preview"],
+			"fields": [
+				{
+					"slug": "title",
+					"label": "标题",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "sections",
+					"label": "区块",
+					"type": "blocks",
+					"validation": {
+						"allowedTypes": ["hero", "services", "why_choose_us", "get_quote", "notice", "contact_cards", "map_form"],
+						"maxItems": 12
+					}
+				}
+			]
+		}
+	],
+	"taxonomies": [
+		{
+			"name": "category",
+			"label": "Categories",
+			"labelSingular": "Category",
+			"hierarchical": true,
+			"collections": ["posts"],
+			"terms": [
+				{
+					"slug": "general",
+					"label": "General"
+				},
+				{
+					"slug": "updates",
+					"label": "Updates"
+				}
+			]
+		},
+		{
+			"name": "tag",
+			"label": "Tags",
+			"labelSingular": "Tag",
+			"hierarchical": false,
+			"collections": ["posts"],
+			"terms": [
+				{
+					"slug": "starter",
+					"label": "Starter"
+				},
+				{
+					"slug": "example",
+					"label": "Example"
+				}
+			]
+		}
+	],
+	"widgetAreas": [
+		{
+			"name": "sidebar",
+			"label": "Sidebar",
+			"description": "Sidebar widget area",
+			"widgets": [
+				{
+					"type": "component",
+					"componentId": "core:search",
+					"title": "Search"
+				},
+				{
+					"type": "component",
+					"componentId": "core:categories",
+					"title": "Categories"
+				},
+				{
+					"type": "component",
+					"componentId": "core:recent-posts",
+					"title": "Recent Posts",
+					"props": {
+						"count": 5
+					}
+				}
+			]
+		}
+	],
+	"content": {
+		"homepage": [
+			{
+				"id": "homepage-home",
+				"slug": "home",
+				"status": "published",
+				"data": {
+					"title": "首页",
+					"sections": [
+						{
+							"_type": "hero",
+							"_version": 1,
+							"_key": "home-hero",
+							"eyebrow": "Welcome",
+							"title": "Wholesale and Customize Dried Flowers in One Place",
+							"text": "We are an one-stop shop for wholesale flower needs, catering to businesses seeking exceptional floral arrangements. We specialize in offering dried flowers, grass, and preserved flowers, and customized bouquets. With our own planting base and a dedicated dried flowers factory, we ensure top-quality products at every step of the process.",
+							"cta_label": "Get A Instant Quote Now",
+							"cta_href": "/contact"
+						},
+						{
+							"_type": "services",
+							"_version": 1,
+							"_key": "home-services",
+							"eyebrow": "Service",
+							"title": "You Should Choose Us",
+							"items": [
+								{
+									"title": "Certified Experts",
+									"text": "Our florists and growers have years of experience drying, preserving and arranging flowers for retailers and events."
+								},
+								{
+									"title": "Quality Services",
+									"text": "From our own planting base to the factory floor, every stem is checked before it is packed and shipped to you."
+								},
+								{
+									"title": "Affordable Pricing",
+									"text": "Buying direct from the farm keeps costs low, with wholesale prices and a low minimum order for every product."
+								}
+							]
+						},
+						{
+							"_type": "why_choose_us",
+							"_version": 1,
+							"_key": "home-why-choose-us",
+							"eyebrow": "Why Choose Us for",
+							"title": "Why Choose Us for Your Dried Flower Need",
+							"reasons": [
+								{
+									"title": "Wide Range of Products",
+									"text": "We are located in Kunming city of China, home to the largest flower wholesale market in Asia. We directly collaborate with planting farms, granting us access to an extensive range of nearly 300 categories of dried plants."
+								},
+								{
+									"title": "Timely Delivery",
+									"text": "With ample products in stock and well-equipped facilities, we ensure timely delivery when you place an order with us."
+								},
+								{
+									"title": "Low MOQ",
+									"text": "We offer a low MOQ, striving to meet all your needs. Whether for wholesale business or event arrangements, we are dedicated to satisfying your requirements."
+								}
+							]
+						},
+						{
+							"_type": "get_quote",
+							"_version": 1,
+							"_key": "home-get-quote",
+							"title": "Start your Packaging Journey",
+							"text": "Find the right packaging solution for your needs by exploring our selection of packaging solutions",
+							"cta_label": "Get A Quote",
+							"cta_href": "/contact"
+						}
+					]
+				}
+			}
+		],
+		"pages": [
+			{
+				"id": "about",
+				"slug": "about",
+				"status": "published",
+				"data": {
+					"title": "About",
+					"sections": [
+						{
+							"_type": "notice",
+							"_version": 1,
+							"_key": "about-notice",
+							"title": "这是一个通用区块",
+							"text": "提示区块可以加到首页，也可以加到任意页面。"
+						}
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "This is the about page. Edit it in the admin panel or replace this template with your own design.",
+									"_key": "k1"
+								}
+							],
+							"_key": "k0"
+						}
+					]
+				}
+			},
+			{
+				"id": "contact",
+				"slug": "contact",
+				"status": "published",
+				"data": {
+					"title": "Contact us",
+					"sections": [
+						{
+							"_type": "contact_cards",
+							"_version": 1,
+							"_key": "contact-cards",
+							"items": [
+								{
+									"icon": "phone",
+									"title": "Phone",
+									"text": "+86 13388886543",
+									"href": "tel:+8613388886543"
+								},
+								{
+									"icon": "mobile",
+									"title": "Mobile",
+									"text": "+86 13388886543",
+									"href": "tel:+8613388886543"
+								},
+								{
+									"icon": "email",
+									"title": "Email",
+									"text": "kdjflksdf@aa.com",
+									"href": "mailto:kdjflksdf@aa.com"
+								},
+								{
+									"icon": "address",
+									"title": "Address",
+									"text": "Room 24d, No38 Linle Road, Tianhe District, Guangzhou, China"
+								},
+								{
+									"icon": "whatsapp",
+									"title": "WhatsApp",
+									"text": "+86 13388886543",
+									"href": "https://wa.me/13388886543"
+								}
+							]
+						},
+						{
+							"_type": "map_form",
+							"_version": 1,
+							"_key": "contact-map-form",
+							"address": "Room 24d, No38 Linle Road, Tianhe District, Guangzhou, China",
+							"button_label": "Send"
+						}
+					]
+				}
+			}
+		],
+		"posts": [
+			{
+				"id": "post-1",
+				"slug": "welcome",
+				"status": "published",
+				"data": {
+					"title": "Welcome",
+					"excerpt": "Your first post. Replace this with your own content.",
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "This is a starter post. The templates in this project show the basic patterns for querying and rendering EmDash content. Replace them with your own design.",
+									"_key": "k1"
+								}
+							],
+							"_key": "k0"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [
+								{
+									"_type": "span",
+									"text": "What to do next",
+									"_key": "k3"
+								}
+							],
+							"_key": "k2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Open the admin panel to add content, or edit the Astro pages in src/pages to change how content is displayed.",
+									"_key": "k5"
+								}
+							],
+							"_key": "k4"
+						}
+					]
+				},
+				"taxonomies": {
+					"category": ["general"],
+					"tag": ["starter", "example"]
+				}
+			}
+		]
+	}
+}

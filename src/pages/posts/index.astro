@@ -1,0 +1,19 @@
+---
+import Base from "../../layouts/Base.astro";
+import PostArchive from "../../components/posts/PostArchive.astro";
+import { loadPostsPage } from "../../utils/post-archive";
+
+const queryPage = Astro.url.searchParams.get("page");
+if (queryPage) {
+	if (!/^[1-9]\d*$/.test(queryPage)) return Astro.rewrite("/404");
+	const target = queryPage === "1" ? "/posts" : `/posts/page/${queryPage}`;
+	return Astro.redirect(target);
+}
+
+const { posts, pageCount, cacheHint } = await loadPostsPage(1);
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+---
+
+<Base title="Blogs" description="Blogs">
+	<PostArchive posts={posts} page={1} pageCount={pageCount} />
+</Base>

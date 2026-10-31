@@ -1,0 +1,329 @@
+---
+import { getEmDashEntry } from "emdash";
+import type { Page } from "../../../emdash-env";
+import Base from "../../layouts/Base.astro";
+
+const fallbackImage = "/images/home/hero.jpg";
+const { entry: page, cacheHint } = await getEmDashEntry("pages", "about");
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const image = backgroundImage(page?.data.featured_image);
+
+const lines = [
+	{
+		href: "/product-cat/dried-flowers",
+		image: "/images/categories/dried-flowers.jpg",
+		title: "Dried flowers",
+		text: "Heads and stems dried at our factory, packed for shops that build their own bunches.",
+	},
+	{
+		href: "/product-cat/preserved-flower",
+		image: "/images/categories/preserved-flower.jpg",
+		title: "Preserved flowers",
+		text: "Color held so an arrangement can stay on a counter or a wedding table through the season.",
+	},
+	{
+		href: "/product-cat/bouquets",
+		image: "/images/categories/bouquets.jpg",
+		title: "Bouquets",
+		text: "Finished bunches for retail and events, made to the size you order.",
+	},
+	{
+		href: "/product-cat/dried-plants",
+		image: "/images/categories/dried-plants.jpg",
+		title: "Dried plants",
+		text: "Branches, grass, and fillers from farms around Kunming, nearly 300 kinds in the catalog.",
+	},
+];
+
+function backgroundImage(image: Page["featured_image"] | undefined): string {
+	const storageKey = image?.meta?.storageKey;
+	if (typeof storageKey === "string" && /^[A-Za-z0-9._-]+$/.test(storageKey)) {
+		return `/_emdash/api/media/file/${storageKey}`;
+	}
+	if (image?.src && !image.src.endsWith("/undefined")) return image.src;
+	return fallbackImage;
+}
+---
+
+<Base
+	title="About Fancyy"
+	description="Fancyy Flower supplies dried flowers, preserved flowers, and bouquets from a planting base and drying factory in Kunming."
+	content={page ? { collection: "pages", id: page.data.id, slug: "about" } : undefined}
+>
+	<section class="banner" style={`--banner-image: url("${image}")`} {...page?.edit.featured_image}>
+		<div class="banner-inner">
+			<h1>About Fancyy</h1>
+			<nav class="crumbs" aria-label="Breadcrumb">
+				<a href="/">Home</a>
+				<span aria-hidden="true">/</span>
+				<span aria-current="page">About</span>
+			</nav>
+		</div>
+	</section>
+
+	<section class="story" aria-labelledby="about-heading">
+		<img
+			src="/images/home/why-choose-us.jpg"
+			alt="Dried pampas, hydrangea, and statice arranged on a white table"
+			width="1200"
+			height="900"
+		/>
+		<div class="copy">
+			<h2 id="about-heading">About Fancyy</h2>
+			<p>
+				Fancyy Flower supplies dried and preserved flowers for shops, florists, and event studios. We
+				opened in 2022 in Kunming, the Chinese city with the largest flower wholesale market in Asia. Our
+				planting base and drying factory sit beside that market, so catalog lines move from the field to a
+				packed carton without a trading desk in between.
+			</p>
+			<p>
+				You can start with a low minimum order, then repeat the lines that sell. Stock is held at the
+				factory, and we ship to buyers outside China. The sales office is in Tianhe, Guangzhou.
+			</p>
+			<a class="cta" href="/contact">Get A Instant Quote Now</a>
+		</div>
+	</section>
+
+	<section class="lines" aria-label="What we supply">
+		<ul>
+			{
+				lines.map((line) => (
+					<li>
+						<a href={line.href}>
+							<img src={line.image} alt="" width="800" height="600" />
+							<h3>{line.title}</h3>
+							<p>{line.text}</p>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+</Base>
+
+<style>
+	.banner {
+		position: relative;
+		display: flex;
+		min-height: 300px;
+		background-color: #8d8d8d;
+		background-image: var(--banner-image);
+		background-position: center bottom;
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
+
+	.banner::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: rgba(33, 33, 33, 0.3);
+		pointer-events: none;
+	}
+
+	.banner-inner {
+		position: relative;
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: min(100%, var(--content-width));
+		margin-inline: auto;
+		padding: 40px 16px;
+		text-align: center;
+	}
+
+	.banner h1 {
+		margin: 0;
+		color: #fff;
+		font-size: 48px;
+		font-weight: 700;
+		line-height: 1;
+		text-wrap: balance;
+	}
+
+	.crumbs {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 8px;
+		color: #fff;
+		font-size: 14px;
+		line-height: 20px;
+	}
+
+	.crumbs a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.crumbs a:hover {
+		text-decoration: underline;
+	}
+
+	.story {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+		align-items: stretch;
+		width: min(1260px, calc(100% - 32px));
+		margin: 48px auto 0;
+	}
+
+	.story img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		min-height: 400px;
+		object-fit: cover;
+	}
+
+	.copy {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 24px;
+		background: var(--color-surface);
+	}
+
+	.copy h2 {
+		margin: 0 0 16px;
+		color: var(--color-brand);
+		font-size: 24px;
+		font-weight: 700;
+		line-height: 32px;
+		text-wrap: balance;
+	}
+
+	.copy p {
+		margin: 0 0 16px;
+		color: var(--color-text);
+		font-size: 16px;
+		line-height: 24px;
+		text-wrap: pretty;
+	}
+
+	.cta {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 8px;
+		padding: 8px 16px;
+		border-radius: 80px;
+		background: var(--color-brand);
+		color: #fff;
+		font-size: 16px;
+		font-weight: 600;
+		line-height: 24px;
+		text-decoration: none;
+		transition: background-color 300ms var(--ease-out);
+	}
+
+	.cta:hover {
+		background: var(--color-accent);
+	}
+
+	.cta:active {
+		transform: scale(0.98);
+	}
+
+	.lines {
+		width: min(1260px, calc(100% - 32px));
+		margin: 48px auto 80px;
+	}
+
+	.lines ul {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 24px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.lines a {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		background: var(--color-surface);
+		color: inherit;
+		text-decoration: none;
+		transition: transform 500ms var(--ease-out);
+	}
+
+	.lines a:hover {
+		transform: translateY(-4px);
+	}
+
+	.lines a:active {
+		transform: scale(0.98);
+	}
+
+	.lines img {
+		display: block;
+		width: 100%;
+		aspect-ratio: 4 / 3;
+		object-fit: cover;
+	}
+
+	.lines h3 {
+		margin: 16px 16px 8px;
+		color: var(--color-brand);
+		font-size: 18px;
+		font-weight: 600;
+		line-height: 28px;
+		text-wrap: balance;
+	}
+
+	.lines p {
+		margin: 0 16px 16px;
+		color: var(--color-muted);
+		font-size: 14px;
+		line-height: 20px;
+		text-wrap: pretty;
+	}
+
+	@media (max-width: 767px) {
+		.banner {
+			min-height: 220px;
+		}
+
+		.banner h1 {
+			font-size: 36px;
+			line-height: 40px;
+		}
+
+		.story {
+			grid-template-columns: 1fr;
+		}
+
+		.story img {
+			min-height: 240px;
+			max-height: 320px;
+		}
+
+		.lines ul {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	@media (max-width: 478px) {
+		.lines ul {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.cta,
+		.lines a {
+			transition: none;
+		}
+
+		.lines a:hover,
+		.cta:active,
+		.lines a:active {
+			transform: none;
+		}
+	}
+</style>

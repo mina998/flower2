@@ -1,0 +1,196 @@
+---
+import type {
+	HomepageSectionsContactCardsBlock,
+	PageSectionsContactCardsBlock,
+} from "../../../emdash-env";
+
+interface Props {
+	value?: HomepageSectionsContactCardsBlock | PageSectionsContactCardsBlock;
+	index?: number;
+	blockKey?: string;
+}
+
+const items = (Astro.props.value?.items ?? []).filter(
+	(item) => item.title?.trim() || item.text?.trim(),
+);
+
+function external(href: string) {
+	return /^https?:\/\//i.test(href);
+}
+---
+
+{
+	items.length > 0 && (
+		<section class="contact-cards" aria-label="Contact details">
+			<ul>
+				{items.map((card) => (
+					<li class={card.icon === "address" ? "wide" : undefined}>
+						<span class="icon" aria-hidden="true">
+							{card.icon === "phone" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M7 3.8h2.2c.4 0 .7.3.8.6l.8 2.5a.9.9 0 0 1-.4.9l-1.5.9a11.6 11.6 0 0 0 5.5 5.5l.9-1.5a.9.9 0 0 1 .9-.4l2.5.8c.3.1.6.4.6.8V16a1.8 1.8 0 0 1-2 1.8A14.8 14.8 0 0 1 5.2 5.8 1.8 1.8 0 0 1 7 3.8z" />
+								</svg>
+							)}
+							{card.icon === "mobile" && (
+								<svg viewBox="0 0 24 24">
+									<rect x="7" y="2.5" width="10" height="19" rx="2" />
+									<path d="M11 18.2h2" />
+								</svg>
+							)}
+							{card.icon === "email" && (
+								<svg viewBox="0 0 24 24">
+									<rect x="3" y="5" width="18" height="14" rx="2" />
+									<path d="M4 7.2 12 13l8-5.8" />
+								</svg>
+							)}
+							{card.icon === "address" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M12 21s6.5-5.6 6.5-10.2a6.5 6.5 0 1 0-13 0C5.5 15.4 12 21 12 21z" />
+									<circle cx="12" cy="10.6" r="2.1" />
+								</svg>
+							)}
+							{card.icon === "whatsapp" && (
+								<svg class="solid" viewBox="0 0 24 24">
+									<path d="M12.1 3.2a8.7 8.7 0 0 0-7.5 13L3.4 20.6l4.5-1.2a8.7 8.7 0 0 0 4.2 1.1 8.8 8.8 0 0 0 0-17.5zm5.1 12.4c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.5-2.6-1.1-4.3-3.8-4.5-4-.1-.2-1-1.3-1-2.5s.6-1.8.9-2c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .5.4.2.6.7 2 .7 2.1.1.2 0 .3-.1.5l-.3.4c-.1.2-.3.3-.1.6.2.3.7 1.2 1.5 1.9 1 .9 1.9 1.2 2.2 1.3.3.1.4.1.6-.1l.4-.5c.2-.2.3-.2.5-.1l2 .9c.2.1.4.2.4.3.1.3 0 .8-.2 1.1z" />
+								</svg>
+							)}
+						</span>
+						<h2>{card.title}</h2>
+						{card.text && card.href ? (
+							<a
+								href={card.href}
+								target={external(card.href) ? "_blank" : undefined}
+								rel={external(card.href) ? "noopener noreferrer" : undefined}
+							>
+								{card.text}
+							</a>
+						) : (
+							card.text && <p>{card.text}</p>
+						)}
+					</li>
+				))}
+			</ul>
+		</section>
+	)
+}
+
+<style>
+	.contact-cards {
+		max-width: var(--content-width);
+		margin: 0 auto;
+		padding: 48px 10px 64px;
+	}
+
+	.contact-cards ul {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 20px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.contact-cards li.wide {
+		grid-column: span 2;
+	}
+
+	.contact-cards li {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		min-width: 0;
+		padding: 24px 16px;
+		border-radius: 4px;
+		background: var(--color-surface);
+		text-align: center;
+	}
+
+	.icon {
+		display: grid;
+		width: 48px;
+		height: 48px;
+		place-items: center;
+		border-radius: 50%;
+		background: var(--color-brand);
+		color: #fff;
+	}
+
+	.icon svg {
+		width: 22px;
+		height: 22px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.icon svg path,
+	.icon svg rect,
+	.icon svg circle {
+		fill: none;
+	}
+
+	.icon svg.solid,
+	.icon svg.solid path {
+		fill: currentColor;
+		stroke: none;
+	}
+
+	.contact-cards h2 {
+		margin: 16px 0 0;
+		color: var(--color-ink);
+		font-size: 16px;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	.contact-cards p,
+	.contact-cards a {
+		max-width: 100%;
+		margin: 8px 0 0;
+		color: var(--color-muted);
+		font-size: 15px;
+		line-height: 1.6;
+		overflow-wrap: break-word;
+		text-decoration: none;
+	}
+
+	.contact-cards a {
+		transition: color 0.3s var(--ease-out);
+	}
+
+	.contact-cards a:hover {
+		color: var(--color-brand);
+	}
+
+	.contact-cards a:focus-visible {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 3px;
+	}
+
+	@media (max-width: 767px) {
+		.contact-cards {
+			padding: 32px 10px 48px;
+		}
+
+		.contact-cards ul {
+			gap: 12px;
+		}
+
+		.contact-cards li {
+			padding: 16px 8px;
+		}
+
+		.contact-cards p,
+		.contact-cards a {
+			font-size: 12px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.contact-cards a {
+			transition: none;
+		}
+	}
+</style>

@@ -1,0 +1,58 @@
+:root {
+	--font-body: "Poppins", system-ui, sans-serif;
+
+	--color-brand: #e5a488;
+	--color-accent: #ff8c00;
+	--color-ink: #212121;
+	--color-text: #363636;
+	--color-muted: #616161;
+	--color-page: #f7f7f7;
+	--color-surface: #ffffff;
+	--color-surface-soft: #f6f6f6;
+
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	--content-width: 1280px;
+
+	--emdash-search-border: #e0d6d0;
+	--emdash-search-border-focus: var(--color-brand);
+	--emdash-search-hover: #fbf1ec;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-body);
+	font-size: 1rem;
+	line-height: 1.5rem;
+	color: var(--color-text);
+	background: var(--color-page);
+}
+
+.skip-link {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	z-index: 100;
+	padding: 8px 12px;
+	border-radius: 8px;
+	background: var(--color-ink);
+	color: var(--color-surface);
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-decoration: none;
+	transform: translateY(-200%);
+}
+
+.skip-link:focus {
+	transform: translateY(0);
+}
+
+:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+}

@@ -1,0 +1,118 @@
+---
+import { getEmDashEntry } from "emdash";
+import { Blocks, defineBlockComponents } from "emdash/ui";
+import type { Page, PageSectionsBlock } from "../../../emdash-env";
+import Base from "../../layouts/Base.astro";
+import ContactCards from "../../components/blocks/ContactCards.astro";
+import MapForm from "../../components/blocks/MapForm.astro";
+import Notice from "../../components/blocks/Notice.astro";
+
+const fallbackImage = "/images/contact/banner.jpg";
+const { entry: page, cacheHint } = await getEmDashEntry("pages", "contact");
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const pageBlocks = defineBlockComponents<PageSectionsBlock>({
+	notice: Notice,
+	contact_cards: ContactCards,
+	map_form: MapForm,
+});
+
+const image = backgroundImage(page?.data.featured_image);
+
+function backgroundImage(image: Page["featured_image"]): string {
+	const storageKey = image?.meta?.storageKey;
+	if (typeof storageKey === "string" && /^[A-Za-z0-9._-]+$/.test(storageKey)) {
+		return `/_emdash/api/media/file/${storageKey}`;
+	}
+	if (image?.src && !image.src.endsWith("/undefined")) return image.src;
+	return fallbackImage;
+}
+---
+
+<Base
+	title="Contact us"
+	description="Contact us"
+	content={page ? { collection: "pages", id: page.data.id, slug: "contact" } : undefined}
+>
+	<section class="banner" style={`--banner-image: url("${image}")`} {...page?.edit.featured_image}>
+		<div class="banner-inner">
+			<h1>Contact us</h1>
+			<nav class="crumbs" aria-label="Breadcrumb">
+				<a href="/">Home</a>
+				<span aria-hidden="true">/</span>
+				<span aria-current="page">Contact</span>
+			</nav>
+		</div>
+	</section>
+	<Blocks value={page?.data.sections} components={pageBlocks} />
+</Base>
+
+<style>
+	.banner {
+		position: relative;
+		display: flex;
+		min-height: 300px;
+		background-color: #8d8d8d;
+		background-image: var(--banner-image);
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
+
+	.banner::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: rgba(33, 33, 33, 0.3);
+		pointer-events: none;
+	}
+
+	.banner-inner {
+		position: relative;
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: min(100%, var(--content-width));
+		margin-inline: auto;
+		padding: 40px 10px;
+	}
+
+	.banner h1 {
+		margin: 0;
+		color: #fff;
+		font-size: 48px;
+		font-weight: 700;
+		line-height: 1.4;
+		text-align: center;
+	}
+
+	.crumbs {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		color: #e0e0e0;
+		font-size: 15px;
+		line-height: 1.7;
+	}
+
+	.crumbs a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.crumbs a:hover {
+		text-decoration: underline;
+	}
+
+	@media (max-width: 767px) {
+		.banner {
+			min-height: 220px;
+		}
+
+		.banner h1 {
+			font-size: 32px;
+		}
+	}
+</style>

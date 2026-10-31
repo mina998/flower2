@@ -1,0 +1,416 @@
+---
+import { decodeSlug, getEmDashCollection, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
+import { PortableText } from "emdash/ui";
+import Base from "../../layouts/Base.astro";
+import { resolveStarterSiteIdentity } from "../../utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+
+if (!slug) {
+	return Astro.rewrite("/404");
+}
+
+const { entry: post, cacheHint } = await getEmDashEntry("posts", slug);
+
+if (!post) {
+	return Astro.rewrite("/404");
+}
+
+const { entries: posts, cacheHint: listHint } = await getEmDashCollection("posts", {
+	orderBy: { published_at: "desc" },
+});
+if (Astro.cache?.enabled) {
+	Astro.cache.set(cacheHint);
+	Astro.cache.set(listHint);
+}
+
+const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
+const seo = getSeoMeta(post, {
+	siteTitle,
+	siteUrl: Astro.url.origin,
+	path: Astro.url.pathname.replace(/\/$/, ""),
+});
+
+const index = posts.findIndex((item) => item.id === post.id);
+const newer = index > 0 ? posts[index - 1] : undefined;
+const older = index >= 0 && index < posts.length - 1 ? posts[index + 1] : undefined;
+const author = post.data.byline?.displayName?.trim();
+const published = post.data.publishedAt;
+const shareUrl = new URL(`/posts/${post.id}`, Astro.url.origin).href;
+const shareTitle = post.data.title;
+
+const shares = [
+	{
+		label: "Facebook",
+		href: `https://www.facebook.com/sharer.php?u=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`,
+		color: "#3b5998",
+	},
+	{
+		label: "X",
+		href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`,
+		color: "#000000",
+	},
+	{
+		label: "LinkedIn",
+		href: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`,
+		color: "#0a66c2",
+	},
+	{
+		label: "WhatsApp",
+		href: `https://wa.me/?text=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}`,
+		color: "#25d366",
+	},
+	{
+		label: "Pinterest",
+		href: `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(shareTitle)}`,
+		color: "#bd081c",
+	},
+	{
+		label: "Telegram",
+		href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`,
+		color: "#229ed9",
+	},
+	{
+		label: "VKontakte",
+		href: `https://vk.com/share.php?url=${encodeURIComponent(shareUrl)}`,
+		color: "#4a76a8",
+	},
+	{
+		label: "Email",
+		href: `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareUrl)}`,
+		color: "#757575",
+	},
+];
+---
+
+<Base
+	title={seo.title}
+	pageTitle={seo.ogTitle}
+	description={seo.description}
+	canonical={seo.canonical}
+	image={seo.ogImage}
+	content={{ collection: "posts", id: post.data.id, slug }}
+>
+	<header class="banner">
+		<div class="banner-inner">
+			<h1 {...post.edit.title}>{post.data.title}</h1>
+			<p class="meta">
+				{author && <span>{author}</span>}
+				{
+					published && (
+						<time datetime={published.toISOString()}>
+							{published.toLocaleDateString("zh-CN", {
+								year: "numeric",
+								month: "long",
+								day: "numeric",
+							})}
+						</time>
+					)
+				}
+			</p>
+		</div>
+	</header>
+
+	<article class="post">
+		<PortableText value={post.data.content} />
+	</article>
+
+	<aside class="rail" aria-label="Post tools">
+		<nav class="neighbors" aria-label="Post navigation">
+			{
+				older && (
+					<a class="neighbor prev" href={`/posts/${older.id}`}>
+						<svg viewBox="0 0 24 24" aria-hidden="true">
+							<path d="M6 14.5 12 8l6 6.5" />
+						</svg>
+						<span>Prev</span>
+					</a>
+				)
+			}
+			{
+				newer && (
+					<a class="neighbor next" href={`/posts/${newer.id}`}>
+						<span>Next</span>
+						<svg viewBox="0 0 24 24" aria-hidden="true">
+							<path d="M6 9.5 12 16l6-6.5" />
+						</svg>
+					</a>
+				)
+			}
+		</nav>
+		<ul class="shares">
+			{
+				shares.map((item) => (
+					<li>
+						<a
+							href={item.href}
+							style={`--share: ${item.color}`}
+							target={item.label === "Email" ? undefined : "_blank"}
+							rel={item.label === "Email" ? undefined : "nofollow noopener noreferrer"}
+							aria-label={`Share on ${item.label}`}
+							title={`Share on ${item.label}`}
+						>
+							{item.label === "Facebook" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M14.5 8.5V6.8c0-.7.5-1 1.2-1H17V3h-2.1C12.2 3 11 4.4 11 6.6v1.9H9v2.7h2V21h3.5v-9.8h2.3l.4-2.7h-2.7z" />
+								</svg>
+							)}
+							{item.label === "X" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M17.6 3h2.8l-6.1 7 7.2 9.5h-5.6l-4.4-5.7L6.7 19.5H3.9l6.5-7.5L3.5 3h5.7l4 5.2L17.6 3zm-1 14.8h1.6L7.5 4.6H5.8l10.8 13.2z" />
+								</svg>
+							)}
+							{item.label === "LinkedIn" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M6.5 9.5H3.7V20h2.8V9.5zM5.1 4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2zM20.3 20h-2.8v-5.6c0-1.6-.6-2.4-1.8-2.4s-1.9.9-1.9 2.5V20H11V9.5h2.7v1.4c.5-.8 1.6-1.6 3.2-1.6 2.3 0 3.4 1.4 3.4 4.2V20z" />
+								</svg>
+							)}
+							{item.label === "WhatsApp" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M12.1 3.4a8.4 8.4 0 0 0-7.2 12.6L3.6 20.4l4.5-1.2a8.4 8.4 0 1 0 4-15.8zm4.8 11.8c-.2.6-1.1 1-1.6 1.1-.4.1-.9.1-1.5-.1-.4-.1-.8-.3-1.4-.5-2.5-1.1-4.1-3.6-4.3-3.8-.1-.2-1-1.2-1-2.4s.6-1.7.8-1.9c.2-.2.5-.3.6-.3h.5c.2 0 .3 0 .5.4.2.5.6 1.8.7 2 .1.1 0 .3-.1.4l-.3.4c-.1.1-.2.3-.1.5.1.3.6 1.1 1.4 1.8.9.8 1.7 1.1 2 1.2.2.1.4.1.5-.1l.4-.5c.1-.2.3-.2.5-.1l1.9.9c.2.1.3.2.4.3.1.2 0 .7-.2 1z" />
+								</svg>
+							)}
+							{item.label === "Pinterest" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M12 3.2A8.8 8.8 0 0 0 7.6 19c.1-.7.4-1.8.7-2.6.2-.6 1.4-5.6 1.4-5.6s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.4-.9 3.8-.3 1.1.5 2 1.6 2 1.9 0 3.2-2.4 3.2-5.3 0-2.2-1.5-3.8-4.2-3.8A4.6 4.6 0 0 0 7.4 10c0 .9.3 1.8.7 2.3.1.1.1.2.1.3l-.3 1.1c0 .2-.2.2-.3.2-1.2-.5-1.8-1.9-1.8-3.4 0-2.5 2.1-5.6 6.4-5.6 3.4 0 5.7 2.5 5.7 5.1 0 3.5-1.9 6.1-4.8 6.1-1 0-1.9-.5-2.2-1.1l-.6 2.3a9 9 0 0 1-1.1 2.3A8.8 8.8 0 1 0 12 3.2z" />
+								</svg>
+							)}
+							{item.label === "Telegram" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M20.7 4.3 3.6 10.9c-1.2.5-1.2 1.1-.2 1.4l4.4 1.4 1.7 5.2c.2.6.1.9.7.9.4 0 .6-.2.8-.4l2.5-2.4 4.3 3.2c.8.4 1.3.2 1.5-.7l2.7-12.8c.3-1.1-.4-1.6-1.3-1.3zM9.6 13.6l7.7-4.9c.4-.2.7 0 .4.3l-6.4 5.8-.2 2.6-1.5-3.8z" />
+								</svg>
+							)}
+							{item.label === "VKontakte" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M4.6 7.2h2.3c.1 0 .2.1.2.2l.1 4.6c0 .2.2.3.3.1l2.2-2.6c.1-.1.2-.2.4-.2h2.4c.2 0 .3.2.2.4l-2.4 2.8c-.1.1 0 .3.2.3l2.7 2.6c.1.1 0 .4-.2.4h-2.5c-.1 0-.3-.1-.4-.2l-2.2-2.5c-.1-.1-.3-.1-.4 0l-.7.8c-.1.1-.1.2-.1.3v1.4c0 .2-.1.3-.3.3H7.2c-1.6 0-2.8-1-3.8-2.7C2.2 11.4 1.4 9 1.4 9c0-.2.1-.3.3-.3h2.4c.2 0 .3.1.3.3 0 0 .6 1.5 1.4 2.5.2.2.3.2.5 0 .1-.1.1-.3.1-.5V8.2c0-.5-.1-1 .6-1h2.6z" />
+								</svg>
+							)}
+							{item.label === "Email" && (
+								<svg viewBox="0 0 24 24">
+									<path d="M4 6.5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm.8 1.6 7.2 4.6 7.2-4.6H4.8zm14.2 8.2V9.2l-6.6 4.2a.8.8 0 0 1-.8 0L5 9.2v7.1h14z" />
+								</svg>
+							)}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</aside>
+</Base>
+
+<style>
+	.banner {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 400px;
+		background: #8a8a8a url("/images/categories/bouquets.jpg") center / cover no-repeat;
+	}
+
+	.banner::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.2);
+		pointer-events: none;
+	}
+
+	.banner-inner {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		width: min(860px, calc(100% - 40px));
+		padding: 40px 10px;
+		text-align: center;
+	}
+
+	.banner h1 {
+		margin: 0;
+		color: #fff;
+		font-size: 36px;
+		font-weight: 700;
+		line-height: 1.4;
+	}
+
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 20px;
+		margin: 0;
+		color: #f5f5f5;
+		font-size: 15px;
+		line-height: 1.4;
+	}
+
+	.post {
+		width: min(840px, calc(100% - 20px));
+		margin: 30px auto;
+		padding: 60px;
+		background: var(--color-surface);
+		color: #363636;
+		font-size: 15px;
+		line-height: 1.7;
+	}
+
+	.post :global(p) {
+		margin: 0 0 18px;
+	}
+
+	.post :global(p:last-child) {
+		margin-bottom: 0;
+	}
+
+	.post :global(a) {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.post :global(a:hover) {
+		color: var(--color-brand);
+	}
+
+	.post :global(img) {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		margin: 0 0 18px;
+	}
+
+	.post :global(h2),
+	.post :global(h3) {
+		margin: 28px 0 12px;
+		color: #363636;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	.post :global(h2) {
+		font-size: 24px;
+	}
+
+	.post :global(h3) {
+		font-size: 20px;
+	}
+
+	.rail {
+		position: fixed;
+		z-index: 30;
+		right: max(8px, calc(50% - 452px));
+		bottom: 50px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.neighbors {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.neighbor {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 30px;
+		color: #363636;
+		font-size: 14px;
+		line-height: 1;
+		letter-spacing: 0.04em;
+		text-decoration: none;
+		text-transform: uppercase;
+	}
+
+	.neighbor span {
+		writing-mode: vertical-rl;
+	}
+
+	.neighbor svg {
+		width: 18px;
+		height: 18px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.neighbor:hover {
+		color: var(--color-brand);
+	}
+
+	.shares {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.shares a {
+		display: grid;
+		width: 30px;
+		height: 30px;
+		place-items: center;
+		border-radius: 50%;
+		background: var(--share);
+		color: #fff;
+	}
+
+	.shares svg {
+		width: 14px;
+		height: 14px;
+		fill: currentColor;
+	}
+
+	.shares a:hover {
+		filter: brightness(1.08);
+	}
+
+	.neighbor:focus-visible,
+	.shares a:focus-visible,
+	.post :global(a:focus-visible) {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
+	}
+
+	@media (max-width: 767px) {
+		.post {
+			padding: 30px;
+		}
+
+		.rail {
+			right: 0;
+		}
+	}
+
+	@media (max-width: 478px) {
+		.banner {
+			min-height: 280px;
+		}
+
+		.banner h1 {
+			font-size: 28px;
+		}
+
+		.post {
+			padding: 20px 10px;
+		}
+
+		.rail {
+			bottom: 96px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.shares a {
+			filter: none;
+		}
+	}
+</style>

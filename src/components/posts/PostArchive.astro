@@ -1,0 +1,326 @@
+---
+import type { ContentEntry } from "emdash";
+import { Image } from "emdash/ui";
+import type { Post } from "../../../emdash-env";
+
+type PostEntry = ContentEntry<Post>;
+
+interface Props {
+	posts: PostEntry[];
+	page: number;
+	pageCount: number;
+}
+
+const { posts, page, pageCount } = Astro.props;
+const EXCERPT_WORDS = 36;
+
+function pageHref(pageNumber: number) {
+	return pageNumber <= 1 ? "/posts" : `/posts/page/${pageNumber}`;
+}
+
+function plainText(content: Post["content"]) {
+	if (!Array.isArray(content)) return "";
+	return content
+		.flatMap((block) => {
+			if (!block || typeof block !== "object" || !("children" in block)) return [];
+			const children = block.children;
+			if (!Array.isArray(children)) return [];
+			return children.map((child) =>
+				child && typeof child === "object" && "text" in child && typeof child.text === "string"
+					? child.text
+					: "",
+			);
+		})
+		.join(" ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+function excerpt(post: PostEntry) {
+	const custom = post.data.excerpt?.trim();
+	if (custom) return custom;
+	const words = plainText(post.data.content).split(" ").filter(Boolean);
+	if (words.length <= EXCERPT_WORDS) return words.join(" ");
+	return `${words.slice(0, EXCERPT_WORDS).join(" ")}…`;
+}
+
+function publishedLabel(post: PostEntry) {
+	const published = post.data.publishedAt;
+	if (!published) return "";
+	return published.toLocaleDateString("zh-CN", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
+}
+---
+
+<section class="banner">
+	<h1>Blogs</h1>
+</section>
+
+<section class="archive">
+	{
+		posts.length === 0 ? (
+			<p class="empty">No posts yet.</p>
+		) : (
+			<ul>
+				{posts.map((post) => {
+					const summary = excerpt(post);
+					const date = publishedLabel(post);
+					return (
+						<li>
+							{post.data.featured_image && (
+								<a class="media" href={`/posts/${post.id}`}>
+									<span {...post.edit.featured_image}>
+										<Image image={post.data.featured_image} />
+									</span>
+								</a>
+							)}
+							<div class="copy">
+								<h2 {...post.edit.title}>
+									<a href={`/posts/${post.id}`}>{post.data.title}</a>
+								</h2>
+								{summary && <p {...post.edit.excerpt}>{summary}</p>}
+								<div class="meta">
+									{date && post.data.publishedAt && (
+										<time datetime={post.data.publishedAt.toISOString()}>{date}</time>
+									)}
+									<a class="more" href={`/posts/${post.id}`}>
+										Read More
+									</a>
+								</div>
+							</div>
+						</li>
+					);
+				})}
+			</ul>
+		)
+	}
+
+	{
+		pageCount > 1 && (
+			<nav class="pager" aria-label="Pagination">
+				<ol>
+					{page > 1 && (
+						<li>
+							<a href={pageHref(page - 1)} aria-label="Previous page">
+								←
+							</a>
+						</li>
+					)}
+					{Array.from({ length: pageCount }, (_, index) => {
+						const number = index + 1;
+						return (
+							<li>
+								{number === page ? (
+									<span aria-current="page">{number}</span>
+								) : (
+									<a href={pageHref(number)}>{number}</a>
+								)}
+							</li>
+						);
+					})}
+					{page < pageCount && (
+						<li>
+							<a href={pageHref(page + 1)} aria-label="Next page">
+								→
+							</a>
+						</li>
+					)}
+				</ol>
+			</nav>
+		)
+	}
+</section>
+
+<style>
+	.banner {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 300px;
+		background: #d7d7d7 url("/images/categories/bouquets.jpg") center / cover no-repeat;
+	}
+
+	.banner h1 {
+		margin: 0;
+		color: #616161;
+		font-size: 48px;
+		font-weight: 700;
+		line-height: 1.4;
+		text-align: center;
+	}
+
+	.archive {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 30px;
+		padding: 30px 10px;
+	}
+
+	.archive ul {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		width: min(860px, 100%);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.archive li {
+		display: grid;
+		grid-template-columns: 30% minmax(0, 1fr);
+		align-items: start;
+		overflow: hidden;
+		padding: 8px;
+		border-radius: 5px;
+		background: var(--color-surface);
+		box-shadow: inset 0 0 2px 0 rgba(158, 158, 158, 0.53);
+	}
+
+	.archive li:not(:has(.media)) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.media {
+		display: block;
+	}
+
+	.media :global(img) {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 3 / 2;
+		object-fit: cover;
+	}
+
+	.copy {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		min-width: 0;
+		padding: 10px;
+	}
+
+	.copy h2 {
+		margin: 0;
+		font-size: 20px;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	.copy h2 a {
+		color: var(--color-brand);
+		text-decoration: none;
+	}
+
+	.copy p {
+		margin: 0;
+		color: #616161;
+		font-size: 15px;
+		line-height: 1.7;
+	}
+
+	.meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.meta time {
+		color: #616161;
+		font-size: 15px;
+		line-height: 1.4;
+	}
+
+	.more {
+		flex: none;
+		padding: 3px 10px;
+		border-radius: 3px;
+		background: var(--color-brand);
+		color: #fff;
+		font-size: 12px;
+		font-weight: 400;
+		line-height: 1.7;
+		text-decoration: none;
+		transition: background-color 0.2s var(--ease-out);
+	}
+
+	.more:hover {
+		background: #ff5722;
+	}
+
+	.copy a:focus-visible,
+	.pager a:focus-visible {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
+	}
+
+	.empty {
+		margin: 40px 0;
+		color: #616161;
+		font-size: 16px;
+	}
+
+	.pager ol {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 10px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pager a,
+	.pager [aria-current="page"] {
+		display: grid;
+		width: 40px;
+		height: 30px;
+		place-items: center;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		background: #fff;
+		color: #616161;
+		font-size: 15px;
+		line-height: 1;
+		text-decoration: none;
+	}
+
+	.pager [aria-current="page"] {
+		background: var(--color-brand);
+		color: #fff;
+	}
+
+	@media (max-width: 767px) {
+		.archive li:has(.media) {
+			grid-template-columns: 40% minmax(0, 1fr);
+		}
+	}
+
+	@media (max-width: 478px) {
+		.archive li,
+		.archive li:has(.media) {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.copy {
+			padding-right: 0;
+			padding-left: 0;
+		}
+
+		.meta {
+			margin-top: 5px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.more {
+			transition: none;
+		}
+	}
+</style>

@@ -1,0 +1,129 @@
+---
+import type { HomepageSectionsGetQuoteBlock } from "../../../emdash-env";
+
+interface Props {
+	value?: HomepageSectionsGetQuoteBlock;
+	index?: number;
+	blockKey?: string;
+}
+
+const { value } = Astro.props;
+const title = value?.title ?? "Start your Packaging Journey";
+const text =
+	value?.text ??
+	"Find the right packaging solution for your needs by exploring our selection of packaging solutions";
+const ctaLabel = value?.cta_label ?? "Get A Quote";
+const ctaHref = value?.cta_href ?? "/contact";
+---
+
+<section class="quote">
+	<div class="quote-inner">
+		<div class="quote-copy">
+			<h2 class="quote-title">{title}</h2>
+			<p class="quote-text">{text}</p>
+		</div>
+
+		<div class="quote-action">
+			<a class="quote-cta" href={ctaHref}>
+				{ctaLabel}
+				<svg viewBox="0 0 512 512" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M48 256c0 114.9 93.1 208 208 208s208-93.1 208-208S370.9 48 256 48 48 141.1 48 256zm244.5 0l-81.9-81.1c-7.5-7.5-7.5-19.8 0-27.3s19.8-7.5 27.3 0l95.4 95.7c7.3 7.3 7.5 19.1.6 26.6l-94 94.3c-3.8 3.8-8.7 5.7-13.7 5.7-4.9 0-9.9-1.9-13.6-5.6-7.5-7.5-7.6-19.7 0-27.3l79.9-81z"
+					/>
+				</svg>
+			</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	.quote {
+		background: #f7e4d7;
+	}
+
+	.quote-inner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: center;
+		max-width: var(--content-width);
+		margin-inline: auto;
+		padding: 50px 10px;
+	}
+
+	.quote-copy {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		row-gap: 20px;
+	}
+
+	.quote-title {
+		margin: 0;
+		font-size: 27px;
+		line-height: 1.4;
+		font-weight: 700;
+		color: #666;
+	}
+
+	.quote-text {
+		margin: 0;
+		font-size: 15px;
+		line-height: 1.7;
+		color: #545454;
+	}
+
+	.quote-action {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.quote-cta {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 10px 50px;
+		border-radius: 30px;
+		background: var(--color-accent);
+		box-shadow: inset 0 0 4px rgba(84, 84, 84, 0.3);
+		color: #fff;
+		font-size: 15px;
+		line-height: 1.7;
+		letter-spacing: 0.5px;
+		text-decoration: none;
+		transition: background-color 0.2s;
+	}
+
+	.quote-cta:hover {
+		background: #ff6e00;
+	}
+
+	.quote-cta svg {
+		width: 20px;
+		height: 20px;
+	}
+
+	@media (max-width: 767px) {
+		.quote-inner {
+			grid-template-columns: 3fr 2fr;
+		}
+	}
+
+	@media (max-width: 478px) {
+		.quote-inner {
+			grid-template-columns: 1fr;
+			gap: 30px;
+		}
+
+		.quote-copy {
+			align-items: center;
+		}
+
+		.quote-title,
+		.quote-text {
+			text-align: center;
+		}
+	}
+</style>

@@ -1,0 +1,154 @@
+---
+import type { HomepageSectionsWhyChooseUsBlock } from "../../../emdash-env";
+
+interface Props {
+	value?: HomepageSectionsWhyChooseUsBlock;
+	index?: number;
+	blockKey?: string;
+}
+
+const fallbackImage = "/images/home/why-choose-us.jpg";
+const fallbackReasons: NonNullable<HomepageSectionsWhyChooseUsBlock["reasons"]> = [
+	{
+		title: "Wide Range of Products",
+		text: "We are located in Kunming city of China, home to the largest flower wholesale market in Asia. We directly collaborate with planting farms, granting us access to an extensive range of nearly 300 categories of dried plants.",
+	},
+	{
+		title: "Timely Delivery",
+		text: "With ample products in stock and well-equipped facilities, we ensure timely delivery when you place an order with us.",
+	},
+	{
+		title: "Low MOQ",
+		text: "We offer a low MOQ, striving to meet all your needs. Whether for wholesale business or event arrangements, we are dedicated to satisfying your requirements.",
+	},
+];
+
+const { value } = Astro.props;
+const eyebrow = value?.eyebrow ?? "Why Choose Us for";
+const title = value?.title ?? "Why Choose Us for Your Dried Flower Need";
+const reasons = value?.reasons ?? fallbackReasons;
+const image = picture(value?.image);
+
+function picture(image: HomepageSectionsWhyChooseUsBlock["image"]) {
+	const storageKey = image?.meta?.storageKey;
+	const src =
+		typeof storageKey === "string" && /^[A-Za-z0-9._-]+$/.test(storageKey)
+			? `/_emdash/api/media/file/${storageKey}`
+			: image?.src && !image.src.endsWith("/undefined")
+				? image.src
+				: fallbackImage;
+	return {
+		src,
+		alt: image?.alt || "Dried flower arrangement",
+		width: image?.width ?? 1024,
+		height: image?.height ?? 768,
+	};
+}
+---
+
+<section class="why">
+	<div class="why-inner">
+		<div class="why-media">
+			<img
+				src={image.src}
+				alt={image.alt}
+				width={image.width}
+				height={image.height}
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
+
+		<div class="why-content">
+			<div class="why-head">
+				<span class="why-eyebrow">{eyebrow}</span>
+				<h2 class="why-title">{title}</h2>
+			</div>
+
+			<div class="why-reasons">
+				{
+					reasons.map((reason) => (
+						<p>
+							<strong>{reason.title}</strong>:
+							<br />
+							{reason.text}
+						</p>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.why {
+		margin-block: 100px;
+	}
+
+	.why-inner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		max-width: var(--content-width);
+		margin-inline: auto;
+		padding-inline: 10px;
+	}
+
+	.why-media img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.why-content {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		row-gap: 20px;
+		padding: 20px;
+		background: var(--color-surface);
+	}
+
+	.why-eyebrow {
+		display: block;
+		font-size: 15px;
+		line-height: 1;
+		color: #4caf50;
+	}
+
+	.why-title {
+		margin: 0;
+		font-size: 27px;
+		line-height: 1.4;
+		font-weight: 700;
+		color: var(--color-brand);
+	}
+
+	.why-reasons {
+		font-size: 16px;
+		line-height: 1.8;
+		color: #545454;
+	}
+
+	.why-reasons p {
+		margin: 0 0 1.2em;
+	}
+
+	.why-reasons p:last-child {
+		margin-bottom: 0;
+	}
+
+	@media (max-width: 767px) {
+		.why-inner {
+			grid-template-columns: 1fr;
+		}
+
+		.why-media img {
+			height: auto;
+		}
+
+		.why-content {
+			padding-inline: 10px;
+		}
+	}
+</style>

@@ -1,0 +1,52 @@
+---
+import { getEmDashEntry, getSeoMeta, decodeSlug, getSiteSettings } from "emdash";
+import { Blocks, PortableText, defineBlockComponents } from "emdash/ui";
+import type { PageSectionsBlock } from "../../emdash-env";
+import Notice from "../components/blocks/Notice.astro";
+import ContactCards from "../components/blocks/ContactCards.astro";
+import MapForm from "../components/blocks/MapForm.astro";
+import Base from "../layouts/Base.astro";
+import { resolveStarterSiteIdentity } from "../utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+
+if (!slug) {
+	return Astro.rewrite("/404");
+}
+
+const { entry: page, cacheHint } = await getEmDashEntry("pages", slug);
+
+if (!page) {
+	return Astro.rewrite("/404");
+}
+
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
+
+const pageBlocks = defineBlockComponents<PageSectionsBlock>({
+	notice: Notice,
+	contact_cards: ContactCards,
+	map_form: MapForm,
+});
+
+const seo = getSeoMeta(page, {
+	siteTitle,
+	siteUrl: Astro.url.origin,
+	path: Astro.url.pathname.replace(/\/$/, ""),
+});
+---
+
+<Base
+	title={seo.title}
+	pageTitle={seo.ogTitle}
+	description={seo.description}
+	canonical={seo.canonical}
+	content={{ collection: "pages", id: page.data.id, slug }}
+>
+	<article>
+		<h1 {...page.edit.title}>{page.data.title}</h1>
+
+		<PortableText value={page.data.content} />
+		<Blocks value={page.data.sections} components={pageBlocks} />
+	</article>
+</Base>

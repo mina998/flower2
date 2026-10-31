@@ -1,0 +1,120 @@
+---
+import type { HomepageSectionsServicesBlock } from "../../../emdash-env";
+
+interface Props {
+	value?: HomepageSectionsServicesBlock;
+	index?: number;
+	blockKey?: string;
+}
+
+const fallbackItems: NonNullable<HomepageSectionsServicesBlock["items"]> = [
+	{
+		title: "Certified Experts",
+		text: "Our florists and growers have years of experience drying, preserving and arranging flowers for retailers and events.",
+	},
+	{
+		title: "Quality Services",
+		text: "From our own planting base to the factory floor, every stem is checked before it is packed and shipped to you.",
+	},
+	{
+		title: "Affordable Pricing",
+		text: "Buying direct from the farm keeps costs low, with wholesale prices and a low minimum order for every product.",
+	},
+];
+
+const { value } = Astro.props;
+const eyebrow = value?.eyebrow ?? "Service";
+const title = value?.title ?? "You Should Choose Us";
+const items = value?.items ?? fallbackItems;
+---
+
+<section class="service">
+	<div class="service-head">
+		<span class="service-eyebrow">{eyebrow}</span>
+		<h2 class="service-title">{title}</h2>
+	</div>
+
+	<ul class="service-grid">
+		{
+			items.map((item) => (
+				<li class="service-card">
+					<h3 class="service-card-title">{item.title}</h3>
+					<p class="service-card-text">{item.text}</p>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	.service-head,
+	.service-grid {
+		max-width: var(--content-width);
+		margin-inline: auto;
+		padding-inline: 10px;
+	}
+
+	.service-head {
+		display: flex;
+		flex-direction: column;
+		padding-block: 60px 30px;
+	}
+
+	.service-eyebrow {
+		font-size: 15px;
+		line-height: 1;
+		color: #4caf50;
+	}
+
+	.service-title {
+		margin: 0;
+		font-size: 27px;
+		line-height: 1.4;
+		font-weight: 700;
+		color: var(--color-brand);
+	}
+
+	.service-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 30px;
+		margin-block: 0;
+		list-style: none;
+	}
+
+	.service-card {
+		display: flex;
+		flex-direction: column;
+		row-gap: 10px;
+		padding: 20px;
+		border-radius: 4px;
+		background: var(--color-surface);
+		box-shadow: inset 0 0 2px 0.3px rgba(33, 33, 33, 0.15);
+	}
+
+	.service-card-title {
+		margin: 0;
+		font-size: 18px;
+		line-height: 1.4;
+		font-weight: 700;
+		color: #545454;
+	}
+
+	.service-card-text {
+		margin: 0;
+		font-size: 15px;
+		line-height: 1.7;
+	}
+
+	@media (max-width: 991px) {
+		.service-grid {
+			gap: 10px;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.service-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
